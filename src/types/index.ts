@@ -22,4 +22,6 @@ export interface ILogQueryParams {
   region?: string;
   action?: string;
   role?: string;
+  startDate?: string;
+  endDate?: string;
 }

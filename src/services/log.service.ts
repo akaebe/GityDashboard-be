@@ -22,20 +22,27 @@ export class LogService {
 
   
 
-  async queryLogs(params: ILogQueryParams) {
+async queryLogs(params: ILogQueryParams) {
   const page = parseInt(params.page || '1', 10);
   const limit = parseInt(params.limit || '10', 10);
   const skip = (page - 1) * limit;
 
   const filter: any = {};
 
-  // Exact matches for filtering
+  // Existing exact filters
   if (params.severity) filter.severity = params.severity;
   if (params.status) filter.status = params.status;
   if (params.region) filter.region = params.region;
-  if (params.role) filter.role = params.role; 
+  if (params.role) filter.role = params.role;
 
-  // Server-side Text Search or Partial Match
+  // SERVER-SIDE DATE RANGE FILTERING ON TIMESTAMP
+  if (params.startDate || params.endDate) {
+    filter.timestamp = {};
+    if (params.startDate) filter.timestamp.$gte = new Date(params.startDate as string);
+    if (params.endDate) filter.timestamp.$lte = new Date(params.endDate as string);
+  }
+
+  // Server-side Text Search
   if (params.search) {
     filter.$or = [
       { action: { $regex: params.search, $options: 'i' } },
@@ -43,7 +50,6 @@ export class LogService {
     ];
   }
 
-  // Server-side sorting
   const sortBy = params.sortBy || 'timestamp';
   const sortOrder = params.sortOrder === 'asc' ? 1 : -1;
   const sortOptions = { [sortBy]: sortOrder };

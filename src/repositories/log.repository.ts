@@ -6,35 +6,34 @@ export class LogRepository {
     // Mongoose insertMany is optimized for bulk inserts
     return await AuditLog.insertMany(logs);
   }
-  // Add this new aggregation method to your existing repository
-async getGlobalStats(filter: any): Promise<{ total: number; resolved: number; unresolved: number }> {
-  // We clone the filter parameters but ignore limit/skip variables
-  const stats = await AuditLog.aggregate([
-    { $match: filter },
-    {
-      $group: {
-        _id: null,
-        total: { $sum: 1 },
-        resolved: {
-          $sum: { $cond: [{ $eq: ["$status", "Resolved"] }, 1, 0] }
-        },
-        unresolved: {
-          $sum: { $cond: [{ $eq: ["$status", "Unresolved"] }, 1, 0] }
+
+  async getGlobalStats(filter: any): Promise<{ total: number; resolved: number; unresolved: number }> {
+    const stats = await AuditLog.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          resolved: {
+            $sum: { $cond: [{ $eq: ["$status", "Resolved"] }, 1, 0] }
+          },
+          unresolved: {
+            $sum: { $cond: [{ $eq: ["$status", "Unresolved"] }, 1, 0] }
+          }
         }
       }
+    ]);
+
+    if (stats.length === 0) {
+      return { total: 0, resolved: 0, unresolved: 0 };
     }
-  ]);
 
-  if (stats.length === 0) {
-    return { total: 0, resolved: 0, unresolved: 0 };
+    return {
+      total: stats[0].total,
+      resolved: stats[0].resolved,
+      unresolved: stats[0].unresolved
+    };
   }
-
-  return {
-    total: stats[0].total,
-    resolved: stats[0].resolved,
-    unresolved: stats[0].unresolved
-  };
-}
 
   async findWithFilters(
     filter: any,
@@ -42,15 +41,17 @@ async getGlobalStats(filter: any): Promise<{ total: number; resolved: number; un
     skip: number,
     limit: number
   ): Promise<{ data: IAuditLogDocument[]; total: number }> {
+    // FIXED: The destructuring array matches the execution order below perfectly now
     const [total, data] = await Promise.all([
-    AuditLog.countDocuments(filter),
-    AuditLog.find(filter)
-    .select('action actor role resource resourceType ipAddress region severity status timestamp')
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(limit)
-      .lean()
-  ]);
+      AuditLog.countDocuments(filter), 
+      AuditLog.find(filter)            
+        .select('action actor role resource resourceType ipAddress region severity status timestamp')
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limit)
+        .lean()
+    ]);
+
     return { data, total };
   }
 }
