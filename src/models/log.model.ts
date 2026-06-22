@@ -17,7 +17,7 @@ const AuditLogSchema = new Schema<IAuditLogDocument>(
     timestamp: { type: Date, required: true, index: true },
   },
   {
-    timestamps: true, // adds createdAt and updatedAt automatically
+    timestamps: true, 
   }
 );
 

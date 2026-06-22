@@ -13,12 +13,15 @@ export class LogRepository {
     skip: number,
     limit: number
   ): Promise<{ data: IAuditLogDocument[]; total: number }> {
-    const total = await AuditLog.countDocuments(filter);
-    const data = await AuditLog.find(filter)
+    const [total, data] = await Promise.all([
+    AuditLog.countDocuments(filter),
+    AuditLog.find(filter)
+    .select('action actor role resource resourceType ipAddress region severity status timestamp')
       .sort(sortOptions)
       .skip(skip)
-      .limit(limit);
-
+      .limit(limit)
+      .lean()
+  ]);
     return { data, total };
   }
 }

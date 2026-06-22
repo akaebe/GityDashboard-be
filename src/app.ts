@@ -1,10 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import logRoutes from './routes/log.routes';
+import compression from 'compression';
 
 const app = express();
 
-// Set high limit for bulk JSON payloads up to 10,000 records
+app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(cors());
 
