@@ -21,4 +21,5 @@ export interface ILogQueryParams {
   status?: string;
   region?: string;
   action?: string;
+  role?: string;
 }

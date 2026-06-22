@@ -6,5 +6,6 @@ const logController = new LogController();
 
 router.post('/upload', logController.bulkUpload);
 router.get('/', logController.getLogs);
+router.get('/stats', logController.getStats);
 
 export default router;

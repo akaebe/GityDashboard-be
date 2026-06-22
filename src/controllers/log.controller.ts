@@ -26,4 +26,13 @@ export class LogController {
       res.status(500).json({ success: false, message: error.message });
     }
   };
+  getStats = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const severityFilter = req.query.severityFilter as string;
+      const stats = await this.logService.getGlobalStats(severityFilter);
+      res.status(200).json({ success: true, ...stats });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  };
 }
